@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-mpesa}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mpesa}
+      POSTGRES_DB: ${POSTGRES_DB:-mpesa_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mpesa} -d ${POSTGRES_DB:-mpesa_db}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  web:
+    build: .
+    env_file:
+      - .env
+    environment:
+      # Ensure container has a TZ; parser assumes Africa/Nairobi for extracted timestamps.
+      TZ: Africa/Nairobi
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
