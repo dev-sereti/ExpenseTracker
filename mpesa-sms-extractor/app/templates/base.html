@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ title or "M-PESA SMS Extractor" }}</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="container header__inner">
+      <div class="brand"><a href="/">M-PESA SMS Extractor</a></div>
+      <nav class="nav">
+        <a href="/">Home</a>
+        <a href="/transactions">Transactions</a>
+        <a href="/export.xlsx">Download Excel</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <small>FastAPI • PostgreSQL • SQLAlchemy • Alembic • openpyxl</small>
+    </div>
+  </footer>
+</body>
+</html>
