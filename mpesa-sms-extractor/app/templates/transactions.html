@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Saved transactions</h1>
+
+  <form method="get" action="/transactions" class="card row">
+    <div class="row__item">
+      <label for="q"><strong>Search by code</strong></label>
+      <input id="q" name="q" value="{{ q }}" placeholder="e.g., QW12ABC3DE" />
+    </div>
+    <div class="row__item row__item--actions">
+      <button type="submit">Search</button>
+      <a class="button button--secondary" href="/transactions">Clear</a>
+      <a class="button button--secondary" href="/export.xlsx">Download Excel</a>
+    </div>
+  </form>
+
+  <div class="card">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Date</th>
+          <th>Amount</th>
+          <th>Mode</th>
+          <th>Sender</th>
+          <th>Receiver</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tx in transactions %}
+          <tr>
+            <td class="mono">{{ tx.transaction_code }}</td>
+            <td>{{ tx.transaction_date }}</td>
+            <td>{{ tx.amount }}</td>
+            <td>{{ tx.transaction_mode }}</td>
+            <td>{{ tx.sender_name or "" }}</td>
+            <td>{{ tx.receiver_name or "" }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="6">No transactions found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
