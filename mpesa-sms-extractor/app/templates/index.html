@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Paste an M-PESA SMS</h1>
+
+  {% if error %}
+    <div class="alert alert--error">
+      <strong>Could not parse message:</strong> {{ error }}
+    </div>
+  {% endif %}
+
+  {% if success %}
+    <div class="alert alert--success">{{ success }}</div>
+  {% endif %}
+
+  <form method="post" action="/" class="card">
+    <label for="message_text"><strong>SMS Text</strong></label>
+    <textarea id="message_text" name="message_text" rows="8" placeholder="Paste the full M-PESA SMS here...">{{ message_text }}</textarea>
+    <div class="actions">
+      <button type="submit">Extract &amp; Save</button>
+      <a class="button button--secondary" href="/transactions">View Transactions</a>
+    </div>
+  </form>
+
+  {% if parsed %}
+    <h2>Extracted fields</h2>
+    <div class="card">
+      <table class="kv">
+        <tr><th>Transaction Code</th><td>{{ parsed.transaction_code }}</td></tr>
+        <tr><th>Date</th><td>{{ parsed.transaction_date }}</td></tr>
+        <tr><th>Amount</th><td>{{ parsed.amount }}</td></tr>
+        <tr><th>Mode</th><td>{{ parsed.transaction_mode }}</td></tr>
+        <tr><th>Sender</th><td>{{ parsed.sender_name or "-" }}</td></tr>
+        <tr><th>Receiver</th><td>{{ parsed.receiver_name or "-" }}</td></tr>
+      </table>
+    </div>
+  {% endif %}
+{% endblock %}
