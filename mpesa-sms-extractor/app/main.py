@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from datetime import datetime, date
 from typing import Optional
-
+from app.services.analytics import build_dashboard_data
 from fastapi import FastAPI, Request, Form, Depends, Query
 from fastapi.responses import HTMLResponse, StreamingResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
