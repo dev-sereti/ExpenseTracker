@@ -5,7 +5,8 @@
     Showing totals and trends for the last three months ({{ window_start.strftime("%Y-%m-%d") }} → {{ window_end.strftime("%Y-%m-%d") }})
   </p>
 
-  <div class="grid">
+  <!-- Summary metrics (already horizontal via CSS grid) -->
+  <div class="grid metrics-grid">
     <div class="card">
       <div class="metric">
         <div class="metric__label">Total Received</div>
@@ -38,28 +39,43 @@
     </div>
   </div>
 
-  <div class="card">
-    <h2>Monthly totals (last 3 months)</h2>
-    <canvas id="monthlyTotals"></canvas>
-  </div>
+  <!-- Visualizations: horizontal layout -->
+  <div class="viz-grid">
+    <div class="card viz-card">
+      <div class="viz-card__header">
+        <h2>Monthly totals</h2>
+        <div class="muted">Last 3 months</div>
+      </div>
+      <div class="viz-card__body">
+        <canvas id="monthlyTotals"></canvas>
+      </div>
+    </div>
 
-  <div class="card">
-    <h2>Cumulative totals (running across months)</h2>
-    <canvas id="cumulativeTotals"></canvas>
-  </div>
+    <div class="card viz-card">
+      <div class="viz-card__header">
+        <h2>Cumulative totals</h2>
+        <div class="muted">Running across months</div>
+      </div>
+      <div class="viz-card__body">
+        <canvas id="cumulativeTotals"></canvas>
+      </div>
+    </div>
 
-  <div class="card">
-    <h2>Spend vs Receive mix</h2>
-    <canvas id="mixChart"></canvas>
-    <p class="muted" style="margin-top:10px;">
-      This summarizes how your activity splits across Sent and Paid compared to Received for the same period.
-    </p>
+    <div class="card viz-card">
+      <div class="viz-card__header">
+        <h2>Spend vs Receive</h2>
+        <div class="muted">Period mix</div>
+      </div>
+      <div class="viz-card__body">
+        <canvas id="mixChart"></canvas>
+      </div>
+    </div>
   </div>
 
   <!-- Chart.js via CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
-  <!-- Embed dashboard data safely to avoid JS global redeclare issues -->
+  <!-- Embed dashboard data safely (avoids global redeclare issues) -->
   <script id="dashboard-data" type="application/json">
     {{ {"months": months, "monthly": monthly, "cumulative": cumulative, "totals": totals} | tojson }}
   </script>
@@ -88,7 +104,6 @@
       return new Chart(canvas, config);
     }
 
-    // Monthly totals
     rebuildChart("monthlyTotals", {
       type: "bar",
       data: {
@@ -101,6 +116,7 @@
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         interaction: { mode: "index", intersect: false },
         scales: {
           y: { beginAtZero: true, ticks: { callback: (v) => "Ksh " + v.toLocaleString() } }
@@ -112,20 +128,20 @@
       }
     });
 
-    // Cumulative totals
     rebuildChart("cumulativeTotals", {
       type: "line",
       data: {
         labels: months,
         datasets: [
-          { label: "Cumulative Received", data: cumulative["Received"], borderColor: colors.received, backgroundColor: colors.received, tension: 0.25 },
-          { label: "Cumulative Sent", data: cumulative["Sent"], borderColor: colors.sent, backgroundColor: colors.sent, tension: 0.25 },
-          { label: "Cumulative Paid", data: cumulative["Paid"], borderColor: colors.paid, backgroundColor: colors.paid, tension: 0.25 },
-          { label: "Cumulative Net", data: cumulative["Net"], borderColor: colors.net, backgroundColor: colors.net, borderDash: [6,4], tension: 0.25 }
+          { label: "Cumulative Received", data: cumulative["Received"], borderColor: colors.received, tension: 0.25 },
+          { label: "Cumulative Sent", data: cumulative["Sent"], borderColor: colors.sent, tension: 0.25 },
+          { label: "Cumulative Paid", data: cumulative["Paid"], borderColor: colors.paid, tension: 0.25 },
+          { label: "Cumulative Net", data: cumulative["Net"], borderColor: colors.net, borderDash: [6,4], tension: 0.25 }
         ]
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         interaction: { mode: "index", intersect: false },
         scales: {
           y: { ticks: { callback: (v) => "Ksh " + v.toLocaleString() } }
@@ -137,7 +153,6 @@
       }
     });
 
-    // Mix doughnut
     rebuildChart("mixChart", {
       type: "doughnut",
       data: {
@@ -149,9 +164,10 @@
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
           tooltip: { callbacks: { label: (ctx) => `${ctx.label}: Ksh ${ctx.parsed.toLocaleString()}` } },
-          legend: { position: "right" }
+          legend: { position: "bottom" }
         }
       }
     });
