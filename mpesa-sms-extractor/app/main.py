@@ -118,3 +118,19 @@ def export_xlsx(
 @app.get("/healthz")
 def healthz():
     return {"ok": True}
+
+@app.get("/dashboard", response_class=HTMLResponse)
+def dashboard(request: Request, db: Session = Depends(get_db)):
+    data = build_dashboard_data(db)
+    return templates.TemplateResponse(
+        "dashboard.html",
+        {
+            "request": request,
+            "months": data.months,
+            "monthly": data.monthly,
+            "cumulative": data.cumulative,
+            "totals": data.totals,
+            "window_start": data.window_start,
+            "window_end": data.window_end,
+        },
+    )
