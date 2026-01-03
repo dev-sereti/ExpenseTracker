@@ -166,7 +166,3 @@ The dashboard focuses on the **last 3 months (including the current month)** and
 - Mix chart (doughnut): Received vs Sent vs Paid totals for the window
 
 Charts are rendered with Chart.js (CDN) in `dashboard.html`.
-
----
-
-## Project structure
