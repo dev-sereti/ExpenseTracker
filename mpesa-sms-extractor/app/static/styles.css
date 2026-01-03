@@ -92,23 +92,46 @@ button, .button {
 
 .footer { border-top: 1px solid var(--border); color: var(--muted); }
 
-.muted { color: var(--muted); margin-top: -6px; }
+/* Dashboard helpers */
+.muted { color: var(--muted); }
 
-.grid {
+/* Metric cards: horizontal */
+.metrics-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(220px, 1fr));
   gap: 12px;
 }
 
-@media (max-width: 980px) {
-  .grid { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
-}
-@media (max-width: 520px) {
-  .grid { grid-template-columns: 1fr; }
+/* Charts: horizontal row (3 columns) */
+.viz-grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1.3fr 1fr; /* bar, line, doughnut */
+  gap: 12px;
+  align-items: stretch;
+  margin-top: 12px;
 }
 
-.metric__label { color: var(--muted); font-weight: 700; font-size: 0.95rem; }
-.metric__value { font-size: 1.35rem; font-weight: 800; margin-top: 6px; }
-.metric__value--good { color: #42f59e; }
-.metric__value--warn { color: #ffd166; }
-.metric__value--bad { color: #ff6b6b; }
+.viz-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.viz-card__header h2 { margin: 0; }
+
+.viz-card__body {
+  position: relative;
+  height: 320px; /* controls chart height */
+}
+
+/* Responsive fallback: stack on smaller screens */
+@media (max-width: 980px) {
+  .metrics-grid { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
+  .viz-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 520px) {
+  .metrics-grid { grid-template-columns: 1fr; }
+}
