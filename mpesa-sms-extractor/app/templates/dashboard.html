@@ -12,18 +12,21 @@
         <div class="metric__value metric__value--good">Ksh {{ "{:,.2f}".format(totals["Received"]) }}</div>
       </div>
     </div>
+
     <div class="card">
       <div class="metric">
         <div class="metric__label">Total Sent</div>
         <div class="metric__value metric__value--warn">Ksh {{ "{:,.2f}".format(totals["Sent"]) }}</div>
       </div>
     </div>
+
     <div class="card">
       <div class="metric">
         <div class="metric__label">Total Paid</div>
         <div class="metric__value metric__value--warn">Ksh {{ "{:,.2f}".format(totals["Paid"]) }}</div>
       </div>
     </div>
+
     <div class="card">
       <div class="metric">
         <div class="metric__label">Net (Received − Sent − Paid)</div>
@@ -53,13 +56,23 @@
     </p>
   </div>
 
-  <!-- Chart.js via CDN (simple, interactive tooltips/hover built-in) -->
+  <!-- Chart.js via CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- Embed dashboard data safely to avoid JS global redeclare issues -->
+  <script id="dashboard-data" type="application/json">
+    {{ {"months": months, "monthly": monthly, "cumulative": cumulative, "totals": totals} | tojson }}
+  </script>
+
   <script>
-    const months = {{ months | tojson }};
-    const monthly = {{ monthly | tojson }};
-    const cumulative = {{ cumulative | tojson }};
-    const totals = {{ totals | tojson }};
+  (() => {
+    const dataEl = document.getElementById("dashboard-data");
+    const data = JSON.parse(dataEl.textContent);
+
+    const months = data.months;
+    const monthly = data.monthly;
+    const cumulative = data.cumulative;
+    const totals = data.totals;
 
     const colors = {
       received: "rgba(40, 199, 111, 0.75)",
@@ -68,8 +81,15 @@
       net: "rgba(200, 210, 255, 0.8)"
     };
 
-    // Monthly totals bar chart
-    new Chart(document.getElementById("monthlyTotals"), {
+    function rebuildChart(canvasId, config) {
+      const canvas = document.getElementById(canvasId);
+      const existing = Chart.getChart(canvas);
+      if (existing) existing.destroy();
+      return new Chart(canvas, config);
+    }
+
+    // Monthly totals
+    rebuildChart("monthlyTotals", {
       type: "bar",
       data: {
         labels: months,
@@ -92,8 +112,8 @@
       }
     });
 
-    // Cumulative line chart
-    new Chart(document.getElementById("cumulativeTotals"), {
+    // Cumulative totals
+    rebuildChart("cumulativeTotals", {
       type: "line",
       data: {
         labels: months,
@@ -117,8 +137,8 @@
       }
     });
 
-    // Mix doughnut (period totals)
-    new Chart(document.getElementById("mixChart"), {
+    // Mix doughnut
+    rebuildChart("mixChart", {
       type: "doughnut",
       data: {
         labels: ["Received", "Sent", "Paid"],
@@ -135,5 +155,6 @@
         }
       }
     });
+  })();
   </script>
 {% endblock %}
