@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Dashboard</h1>
+  <p class="muted">
+    Showing totals and trends for the last three months ({{ window_start.strftime("%Y-%m-%d") }} → {{ window_end.strftime("%Y-%m-%d") }})
+  </p>
+
+  <div class="grid">
+    <div class="card">
+      <div class="metric">
+        <div class="metric__label">Total Received</div>
+        <div class="metric__value metric__value--good">Ksh {{ "{:,.2f}".format(totals["Received"]) }}</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="metric">
+        <div class="metric__label">Total Sent</div>
+        <div class="metric__value metric__value--warn">Ksh {{ "{:,.2f}".format(totals["Sent"]) }}</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="metric">
+        <div class="metric__label">Total Paid</div>
+        <div class="metric__value metric__value--warn">Ksh {{ "{:,.2f}".format(totals["Paid"]) }}</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="metric">
+        <div class="metric__label">Net (Received − Sent − Paid)</div>
+        {% set net = totals["Net"] %}
+        <div class="metric__value {{ 'metric__value--good' if net >= 0 else 'metric__value--bad' }}">
+          Ksh {{ "{:,.2f}".format(net) }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Monthly totals (last 3 months)</h2>
+    <canvas id="monthlyTotals"></canvas>
+  </div>
+
+  <div class="card">
+    <h2>Cumulative totals (running across months)</h2>
+    <canvas id="cumulativeTotals"></canvas>
+  </div>
+
+  <div class="card">
+    <h2>Spend vs Receive mix</h2>
+    <canvas id="mixChart"></canvas>
+    <p class="muted" style="margin-top:10px;">
+      This summarizes how your activity splits across Sent and Paid compared to Received for the same period.
+    </p>
+  </div>
+
+  <!-- Chart.js via CDN (simple, interactive tooltips/hover built-in) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+    const months = {{ months | tojson }};
+    const monthly = {{ monthly | tojson }};
+    const cumulative = {{ cumulative | tojson }};
+    const totals = {{ totals | tojson }};
+
+    const colors = {
+      received: "rgba(40, 199, 111, 0.75)",
+      sent: "rgba(43, 97, 255, 0.75)",
+      paid: "rgba(255, 159, 67, 0.75)",
+      net: "rgba(200, 210, 255, 0.8)"
+    };
+
+    // Monthly totals bar chart
+    new Chart(document.getElementById("monthlyTotals"), {
+      type: "bar",
+      data: {
+        labels: months,
+        datasets: [
+          { label: "Received", data: monthly["Received"], backgroundColor: colors.received },
+          { label: "Sent", data: monthly["Sent"], backgroundColor: colors.sent },
+          { label: "Paid", data: monthly["Paid"], backgroundColor: colors.paid }
+        ]
+      },
+      options: {
+        responsive: true,
+        interaction: { mode: "index", intersect: false },
+        scales: {
+          y: { beginAtZero: true, ticks: { callback: (v) => "Ksh " + v.toLocaleString() } }
+        },
+        plugins: {
+          tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: Ksh ${ctx.parsed.y.toLocaleString()}` } },
+          legend: { position: "top" }
+        }
+      }
+    });
+
+    // Cumulative line chart
+    new Chart(document.getElementById("cumulativeTotals"), {
+      type: "line",
+      data: {
+        labels: months,
+        datasets: [
+          { label: "Cumulative Received", data: cumulative["Received"], borderColor: colors.received, backgroundColor: colors.received, tension: 0.25 },
+          { label: "Cumulative Sent", data: cumulative["Sent"], borderColor: colors.sent, backgroundColor: colors.sent, tension: 0.25 },
+          { label: "Cumulative Paid", data: cumulative["Paid"], borderColor: colors.paid, backgroundColor: colors.paid, tension: 0.25 },
+          { label: "Cumulative Net", data: cumulative["Net"], borderColor: colors.net, backgroundColor: colors.net, borderDash: [6,4], tension: 0.25 }
+        ]
+      },
+      options: {
+        responsive: true,
+        interaction: { mode: "index", intersect: false },
+        scales: {
+          y: { ticks: { callback: (v) => "Ksh " + v.toLocaleString() } }
+        },
+        plugins: {
+          tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: Ksh ${ctx.parsed.y.toLocaleString()}` } },
+          legend: { position: "top" }
+        }
+      }
+    });
+
+    // Mix doughnut (period totals)
+    new Chart(document.getElementById("mixChart"), {
+      type: "doughnut",
+      data: {
+        labels: ["Received", "Sent", "Paid"],
+        datasets: [{
+          data: [totals["Received"], totals["Sent"], totals["Paid"]],
+          backgroundColor: [colors.received, colors.sent, colors.paid]
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          tooltip: { callbacks: { label: (ctx) => `${ctx.label}: Ksh ${ctx.parsed.toLocaleString()}` } },
+          legend: { position: "right" }
+        }
+      }
+    });
+  </script>
+{% endblock %}
