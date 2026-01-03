@@ -1,6 +1,6 @@
 # M-PESA SMS Extractor, Transaction Manager & Dashboard
 
-A production-ready **web-based** M-PESA transaction manager built with **FastAPI + Jinja2 + PostgreSQL**.
+A production-ready **web-based** M-PESA transaction manager built with.
 
 Paste an M-PESA SMS into the web UI, the app extracts structured transaction details, stores them in PostgreSQL (with deduplication), lets you browse/search transactions, export to Excel, and view an interactive dashboard focusing on the **last 3 months**.
 
