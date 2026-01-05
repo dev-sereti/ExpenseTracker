@@ -136,3 +136,33 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
             "window_end": data.window_end,
         },
     )
+@app.get("/dashboard/export.xlsx")
+def export_dashboard_xlsx(db: Session = Depends(get_db)):
+    data = build_dashboard_data(db)
+
+    # Fetch underlying transactions for the same dashboard window (last 3 months)
+    txs = list(
+        db.scalars(
+            select(Transaction)
+            .where(Transaction.transaction_date >= data.window_start)
+            .order_by(desc(Transaction.transaction_date), desc(Transaction.created_at))
+        ).all()
+    )
+
+    content = dashboard_report_to_xlsx(
+        months=data.months,
+        monthly=data.monthly,
+        cumulative=data.cumulative,
+        totals=data.totals,
+        window_start=data.window_start.strftime("%Y-%m-%d"),
+        window_end=data.window_end.strftime("%Y-%m-%d"),
+        transactions=txs,
+    )
+
+    filename = f"mpesa-dashboard-report-{data.window_end.strftime('%Y%m%d')}.xlsx"
+
+    return StreamingResponse(
+        iter([content]),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
