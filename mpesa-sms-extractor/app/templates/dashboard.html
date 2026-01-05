@@ -1,11 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
   <h1>Dashboard</h1>
+  <div class="actions" style="margin: 10px 0 14px;">
+  <a class="button" href="/dashboard/export.xlsx">Download Dashboard Report (Excel)</a>
+  <a class="button button--secondary" href="/export.xlsx">Download All Transactions (Excel)</a>
+</div>
   <p class="muted">
     Showing totals and trends for the last three months ({{ window_start.strftime("%Y-%m-%d") }} → {{ window_end.strftime("%Y-%m-%d") }})
   </p>
 
-  <!-- Summary metrics (already horizontal via CSS grid) -->
+  <!-- Summary metrics -->
   <div class="grid metrics-grid">
     <div class="card">
       <div class="metric">
