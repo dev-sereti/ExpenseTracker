@@ -107,9 +107,8 @@
 
   <script>
   (() => {
-    // -----------------------------
     // Charts
-    // -----------------------------
+   
     const dataEl = document.getElementById("dashboard-data");
     const data = JSON.parse(dataEl.textContent);
 
@@ -200,9 +199,7 @@
       }
     });
 
-    // -----------------------------
     // Export: PNG / PDF
-    // -----------------------------
     const reportEl = document.getElementById("dashboard-report");
     const pdfBtn = document.getElementById("downloadPdfBtn");
     const pngBtn = document.getElementById("downloadPngBtn");
