@@ -1,91 +1,115 @@
 {% extends "base.html" %}
 {% block content %}
-  <h1>Dashboard</h1>
-  <div class="actions" style="margin: 10px 0 14px;">
-  <a class="button" href="/dashboard/export.xlsx">Export Report</a>
-  <a class="button button--secondary" href="/export.xlsx">Download All Transactions </a>
-</div>
-  <p class="muted">
-    Showing totals and trends for the last three months ({{ window_start.strftime("%Y-%m-%d") }} → {{ window_end.strftime("%Y-%m-%d") }})
-  </p>
+  <div class="dash-header">
+    <div>
+      <h1 style="margin-bottom:6px;">Dashboard</h1>
+      <p class="muted" style="margin-top:0;">
+        Showing totals and trends for the last three months ({{ window_start.strftime("%Y-%m-%d") }} → {{ window_end.strftime("%Y-%m-%d") }})
+      </p>
+    </div>
 
-  <!-- Summary metrics -->
-  <div class="grid metrics-grid">
-    <div class="card">
-      <div class="metric">
-        <div class="metric__label">Total Received</div>
-        <div class="metric__value metric__value--good">Ksh {{ "{:,.2f}".format(totals["Received"]) }}</div>
+    <!-- Download dropdown (ignored in PNG/PDF capture) -->
+    <div class="dash-actions" data-html2canvas-ignore="true">
+      <details class="dropdown">
+        <summary class="button">Download report</summary>
+        <div class="dropdown__menu card">
+          <a class="dropdown__item" href="/dashboard/export.xlsx">Excel (.xlsx)</a>
+          <button class="dropdown__item" type="button" id="downloadPdfBtn">PDF (.pdf)</button>
+          <button class="dropdown__item" type="button" id="downloadPngBtn">PNG (.png)</button>
+        </div>
+      </details>
+
+      <a class="button button--secondary" href="/export.xlsx">Download all transactions</a>
+    </div>
+  </div>
+
+  <!-- Everything inside this container will be captured for PDF/PNG -->
+  <div id="dashboard-report">
+    <!-- Summary metrics -->
+    <div class="grid metrics-grid">
+      <div class="card">
+        <div class="metric">
+          <div class="metric__label">Total Received</div>
+          <div class="metric__value metric__value--good">Ksh {{ "{:,.2f}".format(totals["Received"]) }}</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="metric">
+          <div class="metric__label">Total Sent</div>
+          <div class="metric__value metric__value--warn">Ksh {{ "{:,.2f}".format(totals["Sent"]) }}</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="metric">
+          <div class="metric__label">Total Paid</div>
+          <div class="metric__value metric__value--warn">Ksh {{ "{:,.2f}".format(totals["Paid"]) }}</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="metric">
+          <div class="metric__label">Net (Received − Sent − Paid)</div>
+          {% set net = totals["Net"] %}
+          <div class="metric__value {{ 'metric__value--good' if net >= 0 else 'metric__value--bad' }}">
+            Ksh {{ "{:,.2f}".format(net) }}
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="card">
-      <div class="metric">
-        <div class="metric__label">Total Sent</div>
-        <div class="metric__value metric__value--warn">Ksh {{ "{:,.2f}".format(totals["Sent"]) }}</div>
+    <!-- Visualizations aligned horizontally -->
+    <div class="viz-grid">
+      <div class="card viz-card">
+        <div class="viz-card__header">
+          <h2>Monthly totals</h2>
+          <div class="muted">Last 3 months</div>
+        </div>
+        <div class="viz-card__body">
+          <canvas id="monthlyTotals"></canvas>
+        </div>
       </div>
-    </div>
 
-    <div class="card">
-      <div class="metric">
-        <div class="metric__label">Total Paid</div>
-        <div class="metric__value metric__value--warn">Ksh {{ "{:,.2f}".format(totals["Paid"]) }}</div>
+      <div class="card viz-card">
+        <div class="viz-card__header">
+          <h2>Cumulative totals</h2>
+          <div class="muted">Running across months</div>
+        </div>
+        <div class="viz-card__body">
+          <canvas id="cumulativeTotals"></canvas>
+        </div>
       </div>
-    </div>
 
-    <div class="card">
-      <div class="metric">
-        <div class="metric__label">Net (Received − Sent − Paid)</div>
-        {% set net = totals["Net"] %}
-        <div class="metric__value {{ 'metric__value--good' if net >= 0 else 'metric__value--bad' }}">
-          Ksh {{ "{:,.2f}".format(net) }}
+      <div class="card viz-card">
+        <div class="viz-card__header">
+          <h2>Spend vs Receive</h2>
+          <div class="muted">Period mix</div>
+        </div>
+        <div class="viz-card__body">
+          <canvas id="mixChart"></canvas>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Visualizations: horizontal layout -->
-  <div class="viz-grid">
-    <div class="card viz-card">
-      <div class="viz-card__header">
-        <h2>Monthly totals</h2>
-        <div class="muted">Last 3 months</div>
-      </div>
-      <div class="viz-card__body">
-        <canvas id="monthlyTotals"></canvas>
-      </div>
-    </div>
-
-    <div class="card viz-card">
-      <div class="viz-card__header">
-        <h2>Cumulative totals</h2>
-        <div class="muted">Running across months</div>
-      </div>
-      <div class="viz-card__body">
-        <canvas id="cumulativeTotals"></canvas>
-      </div>
-    </div>
-
-    <div class="card viz-card">
-      <div class="viz-card__header">
-        <h2>Spend vs Receive</h2>
-        <div class="muted">Period mix</div>
-      </div>
-      <div class="viz-card__body">
-        <canvas id="mixChart"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- Chart.js via CDN -->
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
-  <!-- Embed dashboard data safely (avoids global redeclare issues) -->
+  <!-- For PDF/PNG export -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <!-- Embed dashboard data safely (avoids JS global redeclare issues) -->
   <script id="dashboard-data" type="application/json">
     {{ {"months": months, "monthly": monthly, "cumulative": cumulative, "totals": totals} | tojson }}
   </script>
 
   <script>
   (() => {
+    // -----------------------------
+    // Charts
+    // -----------------------------
     const dataEl = document.getElementById("dashboard-data");
     const data = JSON.parse(dataEl.textContent);
 
@@ -173,6 +197,80 @@
           tooltip: { callbacks: { label: (ctx) => `${ctx.label}: Ksh ${ctx.parsed.toLocaleString()}` } },
           legend: { position: "bottom" }
         }
+      }
+    });
+
+    // -----------------------------
+    // Export: PNG / PDF
+    // -----------------------------
+    const reportEl = document.getElementById("dashboard-report");
+    const pdfBtn = document.getElementById("downloadPdfBtn");
+    const pngBtn = document.getElementById("downloadPngBtn");
+
+    async function renderReportCanvas() {
+      // Higher scale = sharper exports
+      return await html2canvas(reportEl, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: null
+      });
+    }
+
+    function downloadDataUrl(dataUrl, filename) {
+      const a = document.createElement("a");
+      a.href = dataUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    pngBtn.addEventListener("click", async () => {
+      pngBtn.disabled = true;
+      try {
+        const canvas = await renderReportCanvas();
+        const dataUrl = canvas.toDataURL("image/png");
+        const filename = `mpesa-dashboard-${new Date().toISOString().slice(0,10)}.png`;
+        downloadDataUrl(dataUrl, filename);
+      } finally {
+        pngBtn.disabled = false;
+      }
+    });
+
+    pdfBtn.addEventListener("click", async () => {
+      pdfBtn.disabled = true;
+      try {
+        const canvas = await renderReportCanvas();
+        const imgData = canvas.toDataURL("image/png");
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation: "p", unit: "pt", format: "a4" });
+
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+
+        // Fit image to page width, keep aspect ratio
+        const imgWidth = pageWidth;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        // If content is taller than a single page, add pages and slice vertically
+        let y = 0;
+        let remaining = imgHeight;
+
+        pdf.addImage(imgData, "PNG", 0, y, imgWidth, imgHeight);
+
+        // Emulate multipage by re-adding the full image with a negative y offset.
+        while (remaining > pageHeight) {
+          remaining -= pageHeight;
+          y -= pageHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, "PNG", 0, y, imgWidth, imgHeight);
+        }
+
+        const filename = `mpesa-dashboard-${new Date().toISOString().slice(0,10)}.pdf`;
+        pdf.save(filename);
+      } finally {
+        pdfBtn.disabled = false;
       }
     });
   })();
