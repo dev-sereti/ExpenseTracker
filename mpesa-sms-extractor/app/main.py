@@ -17,7 +17,6 @@ from app.parser import parse_mpesa_message, ParseError
 from app.services.transactions import create_transaction, list_transactions, get_all_transactions
 from app.services.excel import transactions_to_xlsx
 
-
 app = FastAPI(title="M-PESA SMS Extractor", version="1.0.0")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
