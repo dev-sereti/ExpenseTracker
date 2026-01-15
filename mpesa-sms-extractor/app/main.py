@@ -39,7 +39,6 @@ def index(request: Request):
         },
     )
 
-
 @app.post("/", response_class=HTMLResponse)
 def extract_and_save(
     request: Request,
@@ -92,7 +91,6 @@ def transactions_page(
         {"request": request, "transactions": rows, "q": q or ""},
     )
 
-
 @app.get("/export.xlsx")
 def export_xlsx(
     db: Session = Depends(get_db),
@@ -115,7 +113,6 @@ def export_xlsx(
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
-
 
 @app.get("/healthz")
 def healthz():
